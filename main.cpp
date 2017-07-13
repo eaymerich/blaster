@@ -1,6 +1,7 @@
-#include <iostream>
+#include "GameBlaster.h"
 
 int main() {
-    std::cout << "Hello Blaster!" << std::endl;
+    GameBlaster game;
+    game.start();
     return 0;
 }
