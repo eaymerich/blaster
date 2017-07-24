@@ -2,7 +2,9 @@
 #include <iostream>
 
 #include "DrawContext.h"
+#include "OpenGLInfo.h"
 
+using std::cout;
 using std::cerr;
 using std::endl;
 using std::abort;
@@ -14,31 +16,67 @@ DrawContext::DrawContext() :
     height{768} {
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        cerr << "SDL could not initialize: " << SDL_GetError() << endl;
+        cerr << "SDL not initialized: " << SDL_GetError() << endl;
         abort();
     }
 
-    window = SDL_CreateWindow("SDL Test",
+    // Set OpenGL ES 2.0 Profile
+    // Note: this must be done before creating any window.
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+                        SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+
+    // TODO: Disable this flag in release version.
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+
+    // Set OpenGL ES Attributes
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, GL_TRUE);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
+    window = SDL_CreateWindow("Blaster!",
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
                               width, height,
-                              SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );//| SDL_WINDOW_FULLSCREEN_DESKTOP);
+                              SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);//| SDL_WINDOW_FULLSCREEN_DESKTOP);
     if (!window) {
-        cerr << "Window could not be created: " << SDL_GetError() << endl;
+        cerr << "Window not created: " << SDL_GetError() << endl;
         abort();
     }
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    // Set Vertical Sync
     SDL_GL_SetSwapInterval(0); // 0 - vsync off   1 - vsync on
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     glcontext = SDL_GL_CreateContext(window);
 
+    // Print Platform Info
+    cout << "===== Platform Info =====" << endl;
+    cout << "Platform: " << SDL_GetPlatform() << endl;
+    cout << "Logical CPU count: " << SDL_GetCPUCount() << endl;
+    cout << "Total amount of RAM: " << SDL_GetSystemRAM() << "MB" << endl;
+
+    int win_width = 0;
+    int win_height = 0;
+    SDL_GL_GetDrawableSize(window, &win_width, &win_height);
+    cout << "Window size: " << win_width << "x" << win_height << endl;
+
+    int multisample = 0;
+    int samples = 0;
+    SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &multisample);
+    SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &samples);
+    cout << "Multisampling: " << multisample << endl;
+    cout << "Samples: " << samples << endl;
+    cout << endl;
+
+    // Print OpenGL ES information
+    OpenGLInfo glInfo;
+
+    // Configure OpenGL ES
     glFrontFace(GL_CCW); // Set triangle orientation as counter-clock wise.
     glCullFace(GL_BACK), // Cull triangles looking away from camera.
-               glEnable(GL_CULL_FACE); // Activate triangle culling.
+    glEnable(GL_CULL_FACE); // Activate triangle culling.
     glEnable(GL_DEPTH_TEST); // Activate depth test.
     glDepthFunc(GL_LEQUAL);
     glClearDepthf(1.0f);

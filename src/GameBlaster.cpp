@@ -6,7 +6,8 @@ using std::cout;
 using std::endl;
 
 GameBlaster::GameBlaster() {
-    cout << "GameBlaster v0.1" << endl;
+    cout << "===== Game Blaster Info =====" << endl;
+    cout << "Game Start" << endl;
 }
 
 GameBlaster::~GameBlaster() {
