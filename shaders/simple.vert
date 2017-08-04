@@ -1,5 +1,4 @@
 #version 100
-precision highp float;
 
 attribute vec3 position;
 

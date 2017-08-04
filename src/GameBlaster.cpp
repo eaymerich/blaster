@@ -2,6 +2,7 @@
 
 #include "GameBlaster.h"
 #include "SimpleSquare.h"
+#include "TexturedSquare.h"
 
 using std::cout;
 using std::endl;
@@ -17,7 +18,7 @@ GameBlaster::~GameBlaster() {
 }
 
 void GameBlaster::start() {
-    SimpleSquare square;
+    TexturedSquare square;
 
     while(goOn) {
         // Read Input
