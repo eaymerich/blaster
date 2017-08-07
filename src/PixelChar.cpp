@@ -1,14 +1,7 @@
-#include <cstdlib>
-#include <iostream>
-
-#include "TexturedSquare.h"
+#include "PixelChar.h"
 #include "ShaderUtil.h"
 
-using std::cerr;
-using std::endl;
-
-GLfloat TexturedSquare::vertices[] = {
-    // Front face
+GLfloat PixelChar::vertices[] = {
     -0.5f,  0.5f,  0.0f,
     -0.5f, -0.5f,  0.0f,
      0.5f,  0.5f,  0.0f,
@@ -17,7 +10,7 @@ GLfloat TexturedSquare::vertices[] = {
      0.5f, -0.5f,  0.0f
 };
 
-GLfloat TexturedSquare::textureCoordinates[] = {
+GLfloat PixelChar::textureCoordinates[] = {
     0.0f, 0.0f,
     0.0f, 1.0f,
     1.0f, 0.0f,
@@ -26,18 +19,19 @@ GLfloat TexturedSquare::textureCoordinates[] = {
     1.0f, 1.0f
 };
 
-TexturedSquare::TexturedSquare(const Texture& tex) :
-    texture{tex} {
-
+PixelChar::PixelChar() : texture{"pixelfont.pf"} {
     ShaderUtil util;
-    program = util.loadProgram("textured");
+    program = util.loadProgram("pixelchar");
     positionIndex = glGetAttribLocation(program, "aPosition");
     textureCoordinateIndex =
         glGetAttribLocation(program, "aTextureCoordinate");
     textureUnitIndex = glGetUniformLocation(program, "uTextureUnit");
 }
 
-void TexturedSquare::draw() {
+PixelChar::~PixelChar() {
+}
+
+void PixelChar::draw() {
     glUseProgram(program);
 
     glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, 0, vertices);
@@ -53,3 +47,4 @@ void TexturedSquare::draw() {
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
+

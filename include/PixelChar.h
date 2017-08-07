@@ -1,14 +1,14 @@
-#ifndef __TEXTUREDSQUARE_H__
-#define __TEXTUREDSQUARE_H__
+#ifndef __PIXELCHAR_H__
+#define __PIXELCHAR_H__
 
 #include <GLES2/gl2.h>
 
-#include "Texture.h"
+#include "TextureAlpha.h"
 
-class TexturedSquare {
+class PixelChar {
 public:
-    TexturedSquare(const Texture& tex);
-    virtual ~TexturedSquare() = default;
+    PixelChar();
+    virtual ~PixelChar();
     virtual void draw();
 
 protected:
@@ -18,7 +18,7 @@ protected:
     GLint positionIndex;
     GLint textureCoordinateIndex;
     GLint textureUnitIndex;
-    const Texture& texture;
+    const TextureAlpha texture;
 };
 
-#endif // __TEXTUREDSQUARE_H__
+#endif // __PIXELCHAR_H__

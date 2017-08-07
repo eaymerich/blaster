@@ -3,6 +3,9 @@
 #include "GameBlaster.h"
 #include "SimpleSquare.h"
 #include "TexturedSquare.h"
+#include "TextureTest.h"
+#include "TextureAlpha.h"
+#include "PixelChar.h"
 
 using std::cout;
 using std::endl;
@@ -18,7 +21,10 @@ GameBlaster::~GameBlaster() {
 }
 
 void GameBlaster::start() {
-    TexturedSquare square;
+    //TextureTest texture;
+    //TexturedSquare square{texture};
+
+    PixelChar square;
 
     while(goOn) {
         // Read Input
