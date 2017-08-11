@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 
@@ -12,7 +13,7 @@ using std::streampos;
 using std::string;
 using std::vector;
 
-vector<char> FileUtil::read(string filename) {
+vector<char> FileUtil::read(const string& filename) {
     ifstream file{filename, ios::in | ios::binary | ios::ate};
     if (!file.is_open()) {
         cerr << "Couldn't open file: " << filename << endl;
@@ -25,4 +26,9 @@ vector<char> FileUtil::read(string filename) {
     file.read(buffer.data(), filesize);
     file.close();
     return buffer;
+}
+
+bool FileUtil::hasExtension(const string& value, const string& ending) {
+    return ending.size() <= value.size() &&
+        std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }

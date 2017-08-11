@@ -9,6 +9,13 @@ class Texture {
 public:
     Texture();
     virtual ~Texture();
+    // Make Texture non copyable
+    Texture(const Texture&) = delete;
+    Texture& operator=(const Texture&) = delete;
+    // Make Texture movable
+    Texture(Texture&& other);
+    Texture& operator=(Texture&& other);
+
     virtual GLuint getId() const {
         return textureId;
     }

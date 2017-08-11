@@ -9,7 +9,10 @@
 class TextureAlpha : public Texture {
 public:
     TextureAlpha(std::string filename);
-    virtual ~TextureAlpha() = default;
+    virtual ~TextureAlpha();
+    // Non copyable
+    TextureAlpha(const TextureAlpha&) = delete;
+    TextureAlpha& operator=(const TextureAlpha&) = delete;
 
 protected:
     void loadFromPf(std::string filename);

@@ -7,7 +7,9 @@
 class FileUtil {
 public:
     virtual ~FileUtil() = default;
-    static std::vector<char> read(std::string filename);
+    static std::vector<char> read(const std::string& filename);
+    static bool hasExtension(
+        const std::string& value, const std::string& ending);
 private:
     FileUtil() = default;
 };

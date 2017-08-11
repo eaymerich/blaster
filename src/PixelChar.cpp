@@ -1,4 +1,5 @@
 #include "PixelChar.h"
+#include "TextureManager.h"
 #include "ShaderUtil.h"
 
 GLfloat PixelChar::vertices[] = {
@@ -19,16 +20,41 @@ GLfloat PixelChar::textureCoordinates[] = {
     1.0f, 1.0f
 };
 
-PixelChar::PixelChar() : texture{"pixelfont.pf"} {
-    ShaderUtil util;
-    program = util.loadProgram("pixelchar");
-    positionIndex = glGetAttribLocation(program, "aPosition");
-    textureCoordinateIndex =
-        glGetAttribLocation(program, "aTextureCoordinate");
-    textureUnitIndex = glGetUniformLocation(program, "uTextureUnit");
+unsigned int PixelChar::pixelCharCount = 0;
+GLint PixelChar::program = 0;
+GLint PixelChar::positionIndex = -1;
+GLint PixelChar::textureCoordinateIndex = -1;
+GLint PixelChar::textureUnitIndex = -1;
+GLuint PixelChar::texture = NO_TEXTURE;
+
+PixelChar::PixelChar() {
+    if (pixelCharCount == 0) {
+        // Load texture
+        if (texture == NO_TEXTURE) {
+            texture = TextureManager::getTextureAlpha("pixelfont.pf");
+        }
+
+        // Load shader
+        ShaderUtil util;
+        program = util.loadProgram("pixelchar");
+        positionIndex = glGetAttribLocation(program, "aPosition");
+        textureCoordinateIndex =
+            glGetAttribLocation(program, "aTextureCoordinate");
+        textureUnitIndex = glGetUniformLocation(program, "uTextureUnit");
+    }
+    pixelCharCount++;
 }
 
 PixelChar::~PixelChar() {
+    pixelCharCount--;
+    if (pixelCharCount == 0){
+        glDeleteProgram(program);
+        program = 0;
+        positionIndex = -1;
+        textureCoordinateIndex = -1;
+        textureUnitIndex = -1;
+        texture = NO_TEXTURE;
+    }
 }
 
 void PixelChar::draw() {
@@ -42,7 +68,7 @@ void PixelChar::draw() {
     glEnableVertexAttribArray(textureCoordinateIndex);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture.getId());
+    glBindTexture(GL_TEXTURE_2D, texture);
     glUniform1i(textureUnitIndex, 0);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);

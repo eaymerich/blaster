@@ -17,12 +17,14 @@
 
 
 using std::cerr;
+using std::cout;
 using std::endl;
 using std::equal;
 using std::string;
 using std::vector;
 
 TextureAlpha::TextureAlpha(string filename) {
+    cout << "TextureAlpha()" << endl;
     if (endsWith(filename, ".pf")) {
         loadFromPf(filename);
     } else {
@@ -30,6 +32,14 @@ TextureAlpha::TextureAlpha(string filename) {
              << filename << endl;
         abort();
     }
+}
+
+// TextureAlpha::TextureAlpha(const TextureAlpha& other) {
+//     textureId = other.textureId;
+// }
+
+TextureAlpha::~TextureAlpha() {
+    cout << "~TextureAlpha()" << endl;
 }
 
 /**

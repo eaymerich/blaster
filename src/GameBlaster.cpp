@@ -5,6 +5,7 @@
 #include "TexturedSquare.h"
 #include "TextureTest.h"
 #include "TextureAlpha.h"
+#include "TextureManager.h"
 #include "PixelChar.h"
 
 using std::cout;
@@ -21,10 +22,13 @@ GameBlaster::~GameBlaster() {
 }
 
 void GameBlaster::start() {
+    TextureManager texManager;
     //TextureTest texture;
     //TexturedSquare square{texture};
 
     PixelChar square;
+
+    PixelChar p1, p2;
 
     while(goOn) {
         // Read Input
@@ -35,6 +39,8 @@ void GameBlaster::start() {
 
         // Draw objects
         square.draw();
+        p1.draw();
+        p2.draw();
 
         // Update screen
         drawContex.swap();

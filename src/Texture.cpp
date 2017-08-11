@@ -21,3 +21,13 @@ Texture::~Texture() {
         textureId = NO_TEXTURE;
     }
 }
+
+Texture::Texture(Texture&& other) {
+    *this = std::move(other);
+}
+
+Texture& Texture::operator=(Texture&& other) {
+    GLuint temp = textureId;
+    textureId = other.textureId;
+    other.textureId = temp;
+}
