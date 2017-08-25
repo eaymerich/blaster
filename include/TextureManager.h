@@ -11,8 +11,6 @@
 #define NO_TEXTURE 0
 
 struct PixelData {
-    PixelData() {std::cout << "PixelData()" << std::endl;}
-    ~PixelData() {std::cout << "~PixelData()" << std::endl;}
     GLsizei width = 0;
     GLsizei height = 0;
     GLsizei channels = 0;

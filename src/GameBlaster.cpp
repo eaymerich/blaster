@@ -7,6 +7,8 @@
 #include "TextureAlpha.h"
 #include "TextureManager.h"
 #include "PixelChar.h"
+#include "PixelCharLine.h"
+#include "PixelCharBox.h"
 
 using std::cout;
 using std::endl;
@@ -23,12 +25,21 @@ GameBlaster::~GameBlaster() {
 
 void GameBlaster::start() {
     TextureManager texManager;
+    float ratio = 1024.0f / 768.0f;
     //TextureTest texture;
     //TexturedSquare square{texture};
 
-    PixelChar square;
-
-    PixelChar p1, p2;
+    //PixelChar mChar;
+    //mChar.setChar('g');
+    //PixelCharLine charLine{"Hello World!"};
+    //PixelCharLine charLine{"1234567890123456789012345678901234567890", 1024.0f / 768.0f};
+    PixelCharBox box;
+    box.setText("1234567890123456789012345678901234567890"
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345678901234"
+                "abcedfghijklmnopqrstuvwxyz12345678901234",
+                ratio);
+    box.setPosition(PixelCharBox::xCentered(ratio),
+                    PixelCharBox::yOffset() * -3.5f, 0.0f);
 
     while(goOn) {
         // Read Input
@@ -38,9 +49,7 @@ void GameBlaster::start() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Draw objects
-        square.draw();
-        p1.draw();
-        p2.draw();
+        box.draw();
 
         // Update screen
         drawContex.swap();

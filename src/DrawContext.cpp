@@ -79,6 +79,8 @@ DrawContext::DrawContext() :
     glEnable(GL_CULL_FACE); // Activate triangle culling.
     glEnable(GL_DEPTH_TEST); // Activate depth test.
     glDepthFunc(GL_LEQUAL);
+    glEnable(GL_BLEND); // Activate Alpha blending.
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearDepthf(1.0f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }

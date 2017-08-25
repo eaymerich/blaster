@@ -31,7 +31,7 @@ TextureManager::~TextureManager() {
     cout << "~TextureManager()" << endl;
 
     // Delete Textures
-    for (auto& element : textureAlphaBank) {
+    for (const auto& element : textureAlphaBank) {
         glDeleteTextures(1, &(element.second));
     }
     textureAlphaBank.clear();
