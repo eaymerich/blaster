@@ -3,11 +3,9 @@
 
 #include <GLES2/gl2.h>
 
-#include "Texture.h"
-
 class TexturedSquare {
 public:
-    TexturedSquare(const Texture& tex);
+    TexturedSquare(GLuint tex);
     virtual ~TexturedSquare() = default;
     virtual void draw();
 
@@ -18,7 +16,7 @@ protected:
     GLint positionIndex;
     GLint textureCoordinateIndex;
     GLint textureUnitIndex;
-    const Texture& texture;
+    const GLuint texture;
 };
 
 #endif // __TEXTUREDSQUARE_H__

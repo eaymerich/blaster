@@ -26,14 +26,18 @@ GLfloat TexturedSquare::textureCoordinates[] = {
     1.0f, 1.0f
 };
 
-TexturedSquare::TexturedSquare(const Texture& tex) :
+TexturedSquare::TexturedSquare(GLuint tex) :
     texture{tex} {
 
     ShaderUtil util;
     program = util.loadProgram("textured");
+
+    // Get attribute index
     positionIndex = glGetAttribLocation(program, "aPosition");
     textureCoordinateIndex =
         glGetAttribLocation(program, "aTextureCoordinate");
+
+    // Get Uniform index
     textureUnitIndex = glGetUniformLocation(program, "uTextureUnit");
 }
 
@@ -48,7 +52,7 @@ void TexturedSquare::draw() {
     glEnableVertexAttribArray(textureCoordinateIndex);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture.getId());
+    glBindTexture(GL_TEXTURE_2D, texture);
     glUniform1i(textureUnitIndex, 0);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);

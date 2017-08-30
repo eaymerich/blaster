@@ -4,6 +4,10 @@
 #include "FileUtil.h"
 #include "TextureManager.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#include "stb_image.h"
+
 #define PF_FILESIZE 2048
 #define PF_CHARS_PER_LINE 16
 #define PF_CHARS_PER_COLUMN 16
@@ -36,6 +40,11 @@ TextureManager::~TextureManager() {
     }
     textureAlphaBank.clear();
 
+    for (const auto& element : textureRGBABank) {
+        glDeleteTextures(1, &(element.second));
+    }
+    textureRGBABank.clear();
+
     // Remove this TextureManager as the Unique
     if (UniqueTextureManager == this){
         UniqueTextureManager = nullptr;
@@ -56,6 +65,23 @@ GLuint TextureManager::_getTextureAlpha(const string& filename) {
     GLuint texId = generateNewTextureId();
     loadAlphaTexture(texId, filename);
     textureAlphaBank[filename] = texId;
+    return texId;
+}
+
+GLuint TextureManager::getTextureRGBA(const string& filename) {
+    return UniqueTextureManager->_getTextureRGBA(filename);
+}
+
+GLuint TextureManager::_getTextureRGBA(const string& filename) {
+    auto element = textureRGBABank.find(filename);
+    if (element != textureRGBABank.end()) {
+        // Texture is already loaded
+        return element->second;
+    }
+    // We need to load texture from file
+    GLuint texId = generateNewTextureId();
+    loadRGBATexture(texId, filename);
+    textureRGBABank[filename] = texId;
     return texId;
 }
 
@@ -88,6 +114,38 @@ void TextureManager::loadAlphaTexture(
         abort();
     }
 
+    uploadTextureToGPU(textureId, pixels, GL_ALPHA);
+}
+
+void TextureManager::loadRGBATexture(
+    GLuint textureId, const std::string& filename) {
+
+    // Read pixels
+    PixelData pixels;
+    if (FileUtil::hasExtension(filename, ".png")) {
+        readPixelsFromPng(filename, pixels);
+    } else {
+        cerr << "Unable to load texture: unknown extension: "
+             << filename << endl;
+        abort();
+    }
+
+    if (pixels.channels != 4) {
+        cerr << "Error loading RGBA Texture: file " << filename
+             << " has wrong number of channels: " << pixels.channels << endl;
+        abort();
+    }
+
+    cout << "Width: " << pixels.width << endl;
+    cout << "Height: " << pixels.height << endl;
+    cout << "Channels: " << pixels.channels << endl;
+
+    uploadTextureToGPU(textureId, pixels, GL_RGBA);
+}
+
+void TextureManager::uploadTextureToGPU(
+    GLuint textureId, const PixelData& pixels, GLenum format) {
+
     // Bind the texture object
     glBindTexture(GL_TEXTURE_2D, textureId);
 
@@ -99,8 +157,8 @@ void TextureManager::loadAlphaTexture(
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // Upload Texture data
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, pixels.width, pixels.height, 0,
-                 GL_ALPHA, GL_UNSIGNED_BYTE, pixels.pixels.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, format, pixels.width, pixels.height, 0,
+                 format, GL_UNSIGNED_BYTE, pixels.pixels.data());
 
     // Generate MipMaps
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -157,4 +215,25 @@ void TextureManager::readPixelsFromPf(
             }
         }
     }
+}
+
+/**
+ * Load pixel data from a PNG file (.png).
+ */
+void TextureManager::readPixelsFromPng(
+    const string& filename, PixelData& data) {
+
+    // Read data from file
+    unsigned char* buffer = stbi_load(("./textures/" + filename).c_str(),
+        &(data.width), &(data.height), &(data.channels), 0);
+
+    // Copy pixels to PixelData
+    unsigned int bufferSize = data.width * data.height * data.channels;
+    data.pixels.reserve(bufferSize);
+    for (unsigned int i = 0; i < bufferSize; i++) {
+        data.pixels[i] = buffer[i];
+    }
+
+    // Release buffer
+    stbi_image_free(buffer);
 }
