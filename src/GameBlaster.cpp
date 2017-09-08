@@ -27,7 +27,7 @@ void GameBlaster::start() {
     TextureManager texManager;
     float ratio = 1024.0f / 768.0f;
     //TextureTest texture;
-    TexturedSquare square{TextureManager::getTextureRGBA("mouse01.png")};
+    //TexturedSquare square{TextureManager::getTextureRGBA("mouse01.png")};
 
     //PixelChar mChar;
     //mChar.setChar('g');
@@ -49,8 +49,8 @@ void GameBlaster::start() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Draw objects
-        square.draw();
-        //box.draw();
+        //square.draw();
+        box.draw();
 
         // Update screen
         drawContex.swap();

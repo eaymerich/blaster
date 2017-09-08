@@ -9,6 +9,8 @@ using std::cerr;
 using std::endl;
 using std::abort;
 
+DrawContext* DrawContext::uniqueDrawContex = nullptr;
+
 DrawContext::DrawContext() :
     window{nullptr},
     glcontext{0},
@@ -61,6 +63,8 @@ DrawContext::DrawContext() :
     int win_height = 0;
     SDL_GL_GetDrawableSize(window, &win_width, &win_height);
     cout << "Window size: " << win_width << "x" << win_height << endl;
+    width = win_width;
+    height = win_height;
 
     int multisample = 0;
     int samples = 0;
@@ -83,14 +87,25 @@ DrawContext::DrawContext() :
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearDepthf(1.0f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // If everything went OK, set this as the unique DrawContext
+    uniqueDrawContex = this;
 }
 
 DrawContext::~DrawContext() {
     SDL_GL_DeleteContext(glcontext);
     SDL_DestroyWindow(window);
     SDL_Quit();
+    if (uniqueDrawContex == this) {
+        uniqueDrawContex = nullptr;
+    }
 }
 
 void DrawContext::swap() {
     SDL_GL_SwapWindow(window);
+}
+
+void DrawContext::getDrawSize(unsigned int& w, unsigned int& h) {
+    w = uniqueDrawContex->width;
+    h = uniqueDrawContex->height;
 }

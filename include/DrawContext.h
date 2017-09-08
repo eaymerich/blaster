@@ -9,8 +9,10 @@ public:
     DrawContext();
     virtual ~DrawContext();
     virtual void swap();
+    static void getDrawSize(unsigned int& w, unsigned int& h);
 
 private:
+    static DrawContext* uniqueDrawContex;
     SDL_Window* window;
     SDL_GLContext glcontext;
     GLsizei width;

@@ -136,10 +136,6 @@ void TextureManager::loadRGBATexture(
         abort();
     }
 
-    cout << "Width: " << pixels.width << endl;
-    cout << "Height: " << pixels.height << endl;
-    cout << "Channels: " << pixels.channels << endl;
-
     uploadTextureToGPU(textureId, pixels, GL_RGBA);
 }
 
