@@ -7,13 +7,13 @@
 
 class ShaderUtil {
 public:
-    ShaderUtil();
+    ShaderUtil() = default;
     virtual ~ShaderUtil() = default;
-    virtual GLint loadProgram(std::string name);
+    static GLuint loadProgram(const std::string& name);
 protected:
-    virtual std::vector<char> readFromFile(const std::string& filename);
-    virtual GLuint getShader(const char* shaderSrc, GLenum type);
-    virtual GLint getProgram(GLuint vertexShaderId, GLuint fragmentShaderId);
+    static std::vector<char> readFromFile(const std::string& filename);
+    static GLuint getShader(const char* shaderSrc, GLenum type);
+    static GLuint getProgram(GLuint vertexShaderId, GLuint fragmentShaderId);
 };
 
 #endif // __SHADERUTIL_H__

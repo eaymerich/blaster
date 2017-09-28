@@ -12,10 +12,8 @@ using std::streampos;
 using std::string;
 using std::vector;
 
-ShaderUtil::ShaderUtil() {
-}
 
-GLint ShaderUtil::loadProgram(string name) {
+GLuint ShaderUtil::loadProgram(const string& name) {
     // Read Shader sources
     auto vs_source = readFromFile("./shaders/" + name + ".vert");
     auto fs_source = readFromFile("./shaders/" + name + ".frag");
@@ -78,7 +76,7 @@ GLuint ShaderUtil::getShader(const char* shaderSrc, GLenum type) {
     return shader;
 }
 
-GLint ShaderUtil::getProgram(GLuint vertexShaderId, GLuint fragmentShaderId) {
+GLuint ShaderUtil::getProgram(GLuint vertexShaderId, GLuint fragmentShaderId) {
     // Create program
     auto programObject = glCreateProgram();
     if(programObject == 0){

@@ -25,14 +25,20 @@ Display2D::~Display2D() {
     elements.clear();
 }
 
-void Display2D::draw() {
+void Display2D::draw() const {
     // Set viewport for a square display
     glViewport(xOffset, yOffset, minSize, minSize);
+
+    // Disable depth test
+    glDisable(GL_DEPTH_TEST);
 
     // Draw all 2D elements
     for(const auto& element : elements) {
         element->draw();
     }
+
+    // Reenable depth test
+    glEnable(GL_DEPTH_TEST);
 
     // Restore viewport
     glViewport(0,0, width, height);

@@ -10,7 +10,7 @@ class Display2D {
 public:
     Display2D();
     virtual ~Display2D();
-    virtual void draw();
+    virtual void draw() const;
     virtual void add(Element2D* element);
     virtual void remove(Element2D* element);
 

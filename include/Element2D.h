@@ -11,12 +11,12 @@ public:
               float height = 1.0f);
     virtual ~Element2D() = default;
     virtual void draw() const = 0;
+    virtual void setPosition(float x, float y);
+    virtual void setSize(float width, float height);
 
 protected:
-    float xPos;
-    float yPos;
-    float wSize;
-    float hSize;
+    float position[2];
+    float size[2];
 };
 
 #endif // __ELEMENT2D_H__

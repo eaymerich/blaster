@@ -9,6 +9,8 @@
 #include "PixelChar.h"
 #include "PixelCharLine.h"
 #include "PixelCharBox.h"
+#include "GameHUD.h"
+#include "ShaderManager.h"
 
 using std::cout;
 using std::endl;
@@ -24,7 +26,10 @@ GameBlaster::~GameBlaster() {
 }
 
 void GameBlaster::start() {
+
     TextureManager texManager;
+    ShaderManager shaderManager;
+
     float ratio = 1024.0f / 768.0f;
     //TextureTest texture;
     //TexturedSquare square{TextureManager::getTextureRGBA("mouse01.png")};
@@ -41,6 +46,8 @@ void GameBlaster::start() {
     box.setPosition(PixelCharBox::xCentered(ratio),
                     PixelCharBox::yOffset() * -3.5f, 0.0f);
 
+    GameHUD hud;
+
     while(goOn) {
         // Read Input
         inputManager.readInput();
@@ -49,8 +56,9 @@ void GameBlaster::start() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Draw objects
+        hud.draw();
         //square.draw();
-        box.draw();
+        //box.draw();
 
         // Update screen
         drawContex.swap();
