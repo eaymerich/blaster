@@ -20,3 +20,6 @@
 *.png binary
 *.bmp binary
 *.jpg binary
+
+# Denote 3th Party files
+stb_image.h linguist-vendored
