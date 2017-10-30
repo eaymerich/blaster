@@ -49,7 +49,7 @@ DrawContext::~DrawContext() {
     if (window){
         SDL_DestroyWindow(window);
         window = nullptr;
-        nativeWindow = nullptr;
+        nativeWindow = 0;
     }
     SDL_Quit();
 

@@ -25,7 +25,7 @@ private:
     GLsizei width;
     GLsizei height;
     SDL_Window* window{nullptr};
-    NativeWindowType nativeWindow{nullptr};
+    NativeWindowType nativeWindow{0};
     EGLDisplay display{nullptr};
     EGLContext context{nullptr};
     EGLSurface surface{nullptr};
