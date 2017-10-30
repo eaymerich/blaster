@@ -30,4 +30,5 @@ Texture& Texture::operator=(Texture&& other) {
     GLuint temp = textureId;
     textureId = other.textureId;
     other.textureId = temp;
+    return *this;
 }

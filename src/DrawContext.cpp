@@ -12,100 +12,199 @@ using std::abort;
 DrawContext* DrawContext::uniqueDrawContex = nullptr;
 
 DrawContext::DrawContext() :
-    window{nullptr},
-    glcontext{0},
     width{1024},
     height{768} {
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        cerr << "SDL not initialized: " << SDL_GetError() << endl;
-        abort();
-    }
-
-    // Set OpenGL ES 2.0 Profile
-    // Note: this must be done before creating any window.
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-                        SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
-    // TODO: Disable this flag in release version.
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-
-    // Set OpenGL ES Attributes
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, GL_TRUE);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-
-    window = SDL_CreateWindow("Blaster!",
-                              SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED,
-                              width, height,
-                              SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);//| SDL_WINDOW_FULLSCREEN_DESKTOP);
-    if (!window) {
-        cerr << "Window not created: " << SDL_GetError() << endl;
-        abort();
-    }
-
-    // Set Vertical Sync
-    SDL_GL_SetSwapInterval(0); // 0 - vsync off   1 - vsync on
-
-    glcontext = SDL_GL_CreateContext(window);
-
-    // Print Platform Info
-    cout << "===== Platform Info =====" << endl;
-    cout << "Platform: " << SDL_GetPlatform() << endl;
-    cout << "Logical CPU count: " << SDL_GetCPUCount() << endl;
-    cout << "Total amount of RAM: " << SDL_GetSystemRAM() << "MB" << endl;
-
-    int win_width = 0;
-    int win_height = 0;
-    SDL_GL_GetDrawableSize(window, &win_width, &win_height);
-    cout << "Window size: " << win_width << "x" << win_height << endl;
-    width = win_width;
-    height = win_height;
-
-    int multisample = 0;
-    int samples = 0;
-    SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &multisample);
-    SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &samples);
-    cout << "Multisampling: " << multisample << endl;
-    cout << "Samples: " << samples << endl;
-    cout << endl;
-
-    // Print OpenGL ES information
-    OpenGLInfo glInfo;
-
-    // Configure OpenGL ES
-    glFrontFace(GL_CCW); // Set triangle orientation as counter-clock wise.
-    glCullFace(GL_BACK), // Cull triangles looking away from camera.
-    glEnable(GL_CULL_FACE); // Activate triangle culling.
-    glEnable(GL_DEPTH_TEST); // Activate depth test.
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_BLEND); // Activate Alpha blending.
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearDepthf(1.0f);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    initSDL();
+    printSDLInfo();
+    initEGL();
+    printEGLInfo();
+    configOpenGLES20();
+    printOpenGLInfo();
 
     // If everything went OK, set this as the unique DrawContext
     uniqueDrawContex = this;
 }
 
 DrawContext::~DrawContext() {
-    SDL_GL_DeleteContext(glcontext);
-    SDL_DestroyWindow(window);
+
+    // Destroy EGL stuff
+    if (surface) {
+        eglDestroySurface(display, surface);
+        surface = nullptr;
+    }
+    if (context) {
+        eglDestroyContext(display, context);
+        context = nullptr;
+    }
+    if (display) {
+        eglTerminate(display);
+        display = nullptr;
+    }
+    if (window) {
+        SDL_DestroyWindow(window);
+    }
+
+    // Destroy SDL stuff
+    if (window){
+        SDL_DestroyWindow(window);
+        window = nullptr;
+        nativeWindow = nullptr;
+    }
     SDL_Quit();
+
+    // Remove the unique DrawContext
     if (uniqueDrawContex == this) {
         uniqueDrawContex = nullptr;
     }
 }
 
+void DrawContext::initSDL() {
+    // Init SDL
+    if (SDL_Init(0) < 0) {
+        throw std::runtime_error(std::string{"SDL not initialized: "} +
+                                 SDL_GetError());
+    }
+
+    // Create window
+    window = SDL_CreateWindow("Blaster!",
+                              SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED,
+                              width, height,
+                              SDL_WINDOW_SHOWN);
+                              //SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    if (!window) {
+        throw std::runtime_error(std::string{"Window not created: "} +
+                                 SDL_GetError());
+    }
+
+    // Get native Window handler (needed to init EGL later on...)
+    SDL_SysWMinfo window_info = {};
+    SDL_VERSION(&window_info.version);
+    if (!SDL_GetWindowWMInfo(window, &window_info)) {
+        throw std::runtime_error(
+            "SDL Unable to get WindowWM information.");
+    }
+
+    #if defined(SDL_VIDEO_DRIVER_X11)
+        nativeWindow = window_info.info.x11.window;
+    #elif defined(SDL_VIDEO_DRIVER_WINDOWS)
+        nativeWindow = window_info.info.win.window;
+    #elif
+        #error Unable to get a native window handler!
+    #endif
+}
+
+void DrawContext::initEGL() {
+    // Get an EGL display
+    display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (display == EGL_NO_DISPLAY) {
+        throw std::runtime_error("Unable to get an EGL Display!");
+    }
+
+    // Initialize Display
+    if (!eglInitialize(display, nullptr, nullptr)) {
+        throw std::runtime_error("Unable to initialize the Display!");
+    }
+
+    // Use OpenGL ES API
+    eglBindAPI(EGL_OPENGL_ES_API);
+
+    // Choose EGL frame buffer configuration
+    EGLint attribute_list[] = {
+        EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        EGL_RED_SIZE, 8,
+        EGL_GREEN_SIZE, 8,
+        EGL_BLUE_SIZE, 8,
+        EGL_ALPHA_SIZE, 8,
+        EGL_DEPTH_SIZE, 24,
+        EGL_NONE
+    };
+    EGLConfig config = {};
+    EGLint num_config{0};
+    if (!eglChooseConfig(display,
+                         attribute_list,
+                         &config,
+                         1,
+                         &num_config)) {
+        throw std::runtime_error(
+            "Unable to find a suitable EGL frame buffer configuration!");
+    }
+
+    // Create an OpenGL ES 2.0 rendering context
+    EGLint context_attrib[] = {
+        EGL_CONTEXT_CLIENT_VERSION, 2,
+        EGL_NONE
+    };
+    context = eglCreateContext(display,
+                               config,
+                               EGL_NO_CONTEXT,
+                               context_attrib);
+    if (context == EGL_NO_CONTEXT) {
+        throw std::runtime_error(
+            "Unable to create OpenGL ES 2.0 rendering context!");
+    }
+
+    // Create a Native Window (already done by SDL :D )
+
+    // Create an EGL Surface
+    surface = eglCreateWindowSurface(display, config, nativeWindow, nullptr);
+    if (surface == EGL_NO_SURFACE) {
+        throw std::runtime_error("Unable to create a window Surface!");
+    }
+    eglMakeCurrent(display, surface, surface, context);
+}
+
+void DrawContext::configOpenGLES20() {
+    glFrontFace(GL_CCW); // Set triangle orientation as counter-clock wise.
+    glCullFace(GL_BACK), // Cull triangles looking away from camera.
+    glEnable(GL_CULL_FACE); // Activate triangle culling.
+    glEnable(GL_DEPTH_TEST); // Activate depth test.
+    glDepthFunc(GL_LEQUAL); // Set Depth function.
+    glEnable(GL_BLEND); // Activate Alpha blending.
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearDepthf(1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+void DrawContext::printSDLInfo() {
+    // Print Platform Info
+    cout << "===== SDL Info =====" << endl;
+    SDL_version version;
+    SDL_GetVersion(&version);
+    cout << "Version: " << (uint32_t)version.major << "."
+                        << (uint32_t)version.minor << "."
+                        << (uint32_t)version.patch << endl;
+    cout << "Platform: " << SDL_GetPlatform() << endl;
+    cout << "Logical CPU count: " << SDL_GetCPUCount() << endl;
+    cout << "Total amount of RAM: " << SDL_GetSystemRAM() << "MB" << endl;
+    cout << endl;
+}
+
+void DrawContext::printEGLInfo() {
+    cout << "===== EGL Info =====" << endl;
+    auto vendor = eglQueryString(display, EGL_VENDOR);
+    cout << "EGL Vendor: " << vendor << endl;
+    auto version = eglQueryString(display, EGL_VERSION);
+    cout << "EGL Version: " << version << endl;
+    auto clients = eglQueryString(display, EGL_CLIENT_APIS);
+    cout << "EGL Client APIs: " << clients << endl;
+    cout << endl;
+}
+
+void DrawContext::printOpenGLInfo() {
+    OpenGLInfo glInfo{};
+}
+
 void DrawContext::swap() {
-    SDL_GL_SwapWindow(window);
+    eglSwapBuffers(display, surface);
 }
 
 void DrawContext::getDrawSize(unsigned int& w, unsigned int& h) {
-    w = uniqueDrawContex->width;
-    h = uniqueDrawContex->height;
+    if (uniqueDrawContex) {
+        w = uniqueDrawContex->width;
+        h = uniqueDrawContex->height;
+    }
 }

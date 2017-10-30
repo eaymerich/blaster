@@ -9,6 +9,7 @@
 
 using std::vector;
 using std::string;
+using std::cerr;
 using std::cout;
 using std::endl;
 
@@ -20,7 +21,7 @@ OpenGLInfo::OpenGLInfo()
     printString("Version", GL_VERSION);
     printString("Shading Language Version", GL_SHADING_LANGUAGE_VERSION);
     printInt("Sample Buffers", GL_SAMPLE_BUFFERS);
-    printCompressedTextureFormats();
+    // printCompressedTextureFormats();
     printInt("Max Texture size: ", GL_MAX_TEXTURE_SIZE);
     printInt("Max CubeMap Texture size: ", GL_MAX_CUBE_MAP_TEXTURE_SIZE);
     printInt("Max Texture Units: ", GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
@@ -41,7 +42,34 @@ OpenGLInfo::OpenGLInfo()
 
 void OpenGLInfo::printString(const string& msg, GLenum name) {
     auto val = glGetString(name);
-    cout << msg << ": " << val << endl;
+    if (val == 0) {
+        string msg{"Error getting GL string: "};
+        string err;
+        switch (glGetError()) {
+        case GL_NO_ERROR:
+            err = "GL_NO_ERROR";
+            break;
+        case GL_INVALID_ENUM:
+            err = "GL_INVALID_ENUM";
+            break;
+        case GL_INVALID_VALUE:
+            err = "GL_INVALID_VALUE";
+            break;
+        case GL_INVALID_OPERATION:
+            err = "GL_INVALID_OPERATION";
+            break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            err = "GL_INVALID_FRAMEBUFFER_OPERATION";
+            break;
+        case GL_OUT_OF_MEMORY:
+            err = "GL_OUT_OF_MEMORY";
+            break;
+        default:
+            err = "Unknown error";
+        }
+        throw std::runtime_error(msg + err);
+    }
+    cout << msg << ": " << (char*)val << endl;
 }
 
 void OpenGLInfo::printInt(const std::string& msg, GLenum name) {
@@ -125,7 +153,7 @@ void OpenGLInfo::printCompressedTextureFormats() {
 #endif // GL_ES_VERSION_3_0
         default:
             cout << "Unknown compressed texture format: 0x"
-                 << std::hex << format;
+                 << std::hex << format << std::dec;
             break;
         }
         cout << endl;
